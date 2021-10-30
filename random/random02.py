@@ -1,3 +1,6 @@
+### Create a random number just because of the microseconds 
+### of the actual time of the system
+
 import time
 
 myTime = time.time()
