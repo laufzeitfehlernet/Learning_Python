@@ -1,3 +1,5 @@
+### Easy example of random number generator
+
 seed = 543
 anzahl = 100
 konstante = 499
