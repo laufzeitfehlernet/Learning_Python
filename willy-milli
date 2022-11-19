@@ -1,0 +1,213 @@
+import requests
+import time
+from mastodon import Mastodon
+from datetime import datetime
+import pytz
+import locale
+
+
+def convert_time(utc_time_str):
+	now      = datetime.now()
+	now_date = now.date()
+	utc_time_str = str(now_date) + ' ' + utc_time_str
+	form = '%Y-%m-%d %H:%M'
+	utc_time = datetime.strptime(utc_time_str, form)
+	utc = pytz.timezone('UTC')
+	utc_time_only = utc.localize(utc_time)
+	mez = pytz.timezone('Europe/Berlin')
+	local_time = utc_time_only.astimezone(mez)
+	local_time_str = str(local_time.hour) + ':' + str(local_time.minute)
+	return local_time_str
+
+def get_weather():
+    try:
+        response = requests.get('https://api.weatherbit.io/v2.0/current?lat=50.937193&lon=6.961422&key=API_KEY&lang=DE')
+# https://www.weatherbit.io/api/weather-current
+    except ConnectionError  :
+        return
+    except TimeoutError : 
+        return 
+# NewConnectionError?
+    else:
+        response.encoding = 'utf-8'
+        inhalte = response.json()
+        return inhalte
+    
+def get_date():
+    now = datetime.now()
+    form = '%A, der %d. %B %Y'
+    locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')
+    return str(now.strftime(form))
+
+def get_windir(winc):
+    liste_windir = {
+        'N' : 'Nord',
+        'O' : 'Ost',
+        'S' : 'Süd',
+        'W' : 'West',
+        'NO' : 'Nordost',
+        'SO' : 'Südost',
+        'SW' : 'Südwest',
+        'NW' : 'Nordwest',
+        'NNO' : 'Nordnordost',
+        'ONO' : 'Ostnordost',
+        'OSO' : 'Ostsüdost',
+        'SSO' : 'Südsüdost',
+        'SSW' : 'Südsüdwest',
+        'WSW' : 'Westsüdwest',
+        'WNW' : 'Westnordwest',
+        'NNW' : 'Nordnordwest' 
+            }
+    return liste_windir[winc]
+        
+        
+
+def get_description(weather_code):
+    liste_beschreibung = {
+        200 : 'Drusse gejittert es mit jet Rähn.',
+        201 : 'Es gejittert und rähnt drusse.' ,
+        202 : 'Drusse gejittert es heftigen Rähn.' ,
+        230 : 'Es ist Gejitter mit jet Nebel',
+        231 : 'Drusse han mer Gejitter mit Nebel',
+        232 : 'Es gejittert ganz schön drusse und man kann die Hand vor Augen nit mie sehen.',
+        233 : 'Passt auf: Es gejittert und hagelt drusse!',
+        300 : 'Es herrscht leichter Spühnebel.',
+        301 : 'Drusse is et am fisele.',
+        302 : 'Et is su am fisele, dat man die Hand vor Augen nit mie sehen kann.',
+        500 : 'Es rähnt jet.',
+        501 : 'Nehmt nen Parapluie mit, es rähnt drusse.',
+        502 : 'Bei dem Rähn drusse, würd ich noch nicht mal einen Hungk vor die Dür jage.',
+        511 : 'Achtung: wir haben gefrierenden Rähn. Es künnt also glatt weede.',
+        520 : 'Drusse ham mer leichte Schauer. Stell Dich nit su aan. Bes Du aus Zucker, oder was?',
+        521 : 'En Rähnschirm wäre hilfreich, denn es kann immer wieder Schauer jevve.',
+        522 : 'Bliev besser drinnen - es jit heftige Schauer.',
+        600 : 'Oh, ich han grad ne Schneiflock gesin.',
+        601 : 'Es schneit etwas - oder wie man hee in Kölle sääht: Blizzard!',
+        602 : 'Wow, et schneit grad echt heftig.',
+        610 : 'Rähn und Schnee wechseln sich ab.',
+        611 : 'In Kölle ist grad Schneeregen.',
+        612 : 'In Kölle ist grad heftiger Schneeregen.',
+        621 : 'Aufgepasst! Es kann immer wieder Schneeschauer geben.',
+        622 : 'Es gibt heftige Schneeschauer.',
+        623 : 'Es schneit und es windet dabei kräftig.',
+        700 : 'Et is jett neblig drusse.',
+        711 : 'Wo kütt denn der ganze Rauch her?',
+        721 : 'Die Sicht nicht so gut, es herrscht Dunst.',
+        731 : 'Wo kütt denn der ganze Sand her?',
+        741 : 'Man sieht die Hand vor Augen nicht bei dem Nebel.',
+        751 : 'Achtung, gefrierender Nebel. Pass op, Du fälls glich!',
+        800 : 'Wir haben einen wolkenlosen Himmel draußen. Ich kann Euch alle sehen!',
+        801 : 'Es gitt es ein paar kleen Wölkchen da bovve. Ich seh Euch trotzdem.',
+        802 : 'Es ist heiter bis wolkig.',
+        803 : 'Es ist bewölkt mit kleineren Aufheiterungen.',
+        804 : 'Es ist drusse bewölkt',
+        900 : 'Ich kann grad nicht raus gucken und Euch sagen, wie das Wetter ist.'
+		}
+    return liste_beschreibung[weather_code]
+    
+    
+# Main Program
+letzte_stunde = 0
+
+print('Start um ' + str(time.localtime()) + '\n' )
+    
+try:
+    while True:
+        t = time.localtime()
+        stunde = time.strftime("%H", t)
+        minute = time.strftime("%M", t)
+        sekunde = time.strftime("%S", t)
+        
+        
+        
+        if stunde != letzte_stunde and minute == '00' :
+            letzte_stunde = stunde
+            
+            inhalte = get_weather()
+            
+            temperature  = inhalte['data'][0]['temp']
+            sunset       = convert_time(inhalte['data'][0]['sunset'])
+            sunrise      = convert_time(inhalte['data'][0]['sunrise'])
+            wind_dir     = inhalte['data'][0]['wind_cdir_full']
+            winc         = inhalte['data'][0]['wind_cdir']
+            weather      = inhalte['data'][0]['weather']
+            speed        = round(inhalte['data'][0]['wind_spd'] * 3.6, 1)
+          # description  = weather['description']
+            weather_code = weather['code']
+            description  = get_description(weather_code) 
+            
+            stunde_int = int(stunde)
+            
+            if stunde_int <5:
+                hello = "Gute Nacht"
+                line07 ='Ich wünsche Euch eine gute Nacht!\n'
+            elif stunde_int < 12:
+                hello = "Guten Morgen"
+                line07 ='Ich wünsche Euch noch einen schönen Tag!\n'
+            elif stunde_int < 18:
+                hello = "Guten Tag"
+                line07 ='Ich wünsche Euch noch einen schönen Tag!\n'
+            elif stunde_int < 22:
+                hello = "N'Abend"
+                line07 ='Ich wünsche Euch noch einen schönen Abend!\n'
+            else:
+                hello = "Gute Nacht"
+                line07 ='Ich wünsche Euch eine gute Nacht!\n'
+             
+            if temperature < -10: 
+                line03a = 'Sind mer hee in Sibirie?'
+            elif temperature <-5:
+                line03a = 'Minge Kaffe is injefroren!'
+            elif temperature < 0: 
+                line03a = 'Janz schön kalt hee, nit?'
+            elif temperature < 2:
+                line03a = 'Holl de Blömche eren. Et friert bald!'
+            elif temperature <5:
+                line03a = 'Hat ehr och ne Deck för mich?'
+            elif temperature <8:
+                line03a = 'Künnt jet wärmer sin!'
+            elif temperature < 10: 
+                line03a = 'Maat de Ovve an!'
+            elif temperature < 12:
+                line03a = 'Ich fang aan ze friere!'
+            elif temperature <15:
+                line03a = 'Maat de Dör zu, et treck eren!'
+            elif temperature < 18: 
+                line03a = 'Zieh Dir a Jäcksche üvver!'   
+            elif temperature < 20: 
+                line03a = 'Künnt nen bessche wärmer sin.'
+            elif temperature < 25: 
+                line03a = 'Nee, wat is et herrlich!'
+            elif temperature < 30: 
+                line03a = 'Jetzt e lecker Ies!'
+            elif temperature < 35:
+                line03a = 'Dat is jo nit us ze halde hee!'
+            else: 
+                line03a = 'Boah, is dat heiß. Da weed dä Hungk in de Pann bekloppt.'
+                
+            line01 = hello +', leev Kölsche und hallo liebe Fedi-Tröter. \n'
+            line02 = 'Hück is ' + get_date() +'. Et ist jenau ' + str(stunde) + ' Uhr!\n'
+            line03 = 'Die aktuelle Temperatur in Kölle bedrägt ' + str(temperature) + '°C. ' + line03a + '\n'
+            line04 = description + '\n'
+            line05 = 'Der Wind weht us Richtung ' + get_windir(winc) + ' mit ner Geschwindigkeit von '+ str(speed) + ' km/h.\n'
+            line06 = 'De Sonn jeht um ' + sunrise +' Uhr op und um '+ sunset +' Uhr widder unger.\n'
+            troet = line01 + line02 + line03 + line04 + line05 + line06 + line07 + "Üür Willy"
+            
+            mastodon = Mastodon( access_token = 'pytooter_usercred_willy.secret', api_base_url = 'https://URL')
+            mastodon.toot(troet)
+
+            print('-------------------------')
+            print('Folgendes habe ich gerade für Dich gepostet')
+            print('-------------------------')
+            print(troet)
+            print('-------------------------')
+            print('\n')
+            print('Es wurden folgende Wetterdaten übergeben:\n')
+            print(inhalte)
+            print('-------------------------\n\n')
+                        
+            time.sleep(60)
+            
+except KeyboardInterrupt:
+    pass
+    
