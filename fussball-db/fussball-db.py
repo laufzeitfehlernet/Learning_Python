@@ -89,6 +89,18 @@ class DB():
         self.connection.commit()
 
 
+columns = ["id", "season", "league", "game_day", "home", "away", "home_goal", "away_goal"]
+values_placeholder = ", ".join(["?" for _ in columns])
+query = f"INSERT INTO spiele ({', '.join(columns)}) VALUES ({values_placeholder})"
+
+new_entry = (
+    self.get_next_id(),  # ID
+    *list_entry
+)
+
+self.cursor.execute(query, new_entry)
+    
+
     def read_data_from_db(self):
         self.cursor.execute("SELECT * FROM spiele")
 
