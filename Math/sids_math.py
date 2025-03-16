@@ -76,14 +76,37 @@ def quantile(values, p):
     if not is_list_of_numb(values):
         raise TypeError("All variables have to be numbers")
     if not isinstance(p, float):
-        raise TypeError("Parameter p has to be numbers")
+        raise TypeError("Parameter p has to be a number")
     if p > 1: 
         raise TypeError("Parameter p must not be greater than 1")
     p_index = int(p * len(values))
     return sorted(values)[p_index]
 
+def base(value, basevalue):
+    if not isinstance(value, (int, float) ) :
+        raise TypeError("Parameter value has to be a number")
+    if not isinstance(basevalue, int):
+        raise TypeError("Parameter base has to be an integer")
+    if basevalue > 36:
+        raise TypeError("Parameter base must not be greater than 36")
+    if value == 0:
+        return "0"
+    remainders = []
+    char = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    
+    while value > 0:
+        remainder = value % basevalue
+        value = value // basevalue
+        if remainder > 9:
+            remainder = char[remainder-10]
+        remainders.append(str(remainder))
+        
+    return ''.join(remainders[::-1])
+
+
+
 if __name__ == "__main__":
-    x = 123
+    x = 72
     print("Factorial of ",x , "is ", factorial(x))
     x = factorial(x)
     print("Digit sum ",x , "is ", digit_sum(x))
@@ -98,3 +121,8 @@ if __name__ == "__main__":
     print("Range: ", data_range(values))
     print("Quantile 10%", quantile(values, 0.1))
     print("Quantile 75%", quantile(values, 0.75))
+    print("-------------------------------")
+    value = 363636
+    basevalue = 12
+    print("Zahl ", value, " zur Basis ", basevalue, " : ", base(value, basevalue))
+    
