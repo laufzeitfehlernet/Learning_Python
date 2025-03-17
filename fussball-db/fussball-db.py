@@ -13,9 +13,23 @@ from tkinter import filedialog
 # Definition of a class which handles the database
 class DB():
     def __init__(self, database):
+        """Initialize class
+
+        Parameters
+        ----------
+        database : TYPE
+            name of the database.
+
+        Returns
+        -------
+        None.
+
+        """
         self.connection = sqlite3.connect(database)
         self.cursor = self.connection.cursor()
         self.max_id = 0
+        self.columns = ["id", "season", "league", "game_day", "home", "away",
+                        "home_goal", "away_goal"]
 
         try:
             self.cursor.execute("SELECT * FROM spiele")
@@ -26,6 +40,13 @@ class DB():
 
 
     def init_tables(self):
+        """Creates the table if not existing
+        
+        Returns
+        -------
+        None.
+
+        """
         self.cursor = self.connection.cursor()
 
         # Eine Tabelle erstellen
@@ -74,32 +95,30 @@ class DB():
 
 
     def add_to_db(self):
+
         for list_entry in self.data:
-            new_entry= (self.get_next_id(),  #ID
-                        list_entry[0],       #Season
-                        list_entry[1],       #League
-                        list_entry[2],       #Game Day
-                        list_entry[3],       #Home
-                        list_entry[4],       #Away
-                        list_entry[5],       #Goal home
-                        list_entry[6],       #Gaol away
-                        )
-            self.cursor.execute("INSERT INTO spiele (id, season, league, game_day, home, away, home_goal, away_goal) VALUES (?, ?, ?, ?, ? ,? ,? ,?)", new_entry)
-        
+            values_placeholder = ", ".join(["?" for _ in self.columns])
+            query = f"INSERT INTO spiele ({', '.join(self.columns)}) VALUES ({values_placeholder})"
+
+            new_entry = (
+                self.get_next_id(),  # ID
+                *list_entry
+        )
+            self.cursor.execute(query, new_entry)
+            
         self.connection.commit()
+        
+#            new_entry= (self.get_next_id(),  #ID
+#                        list_entry[0],       #Season
+#                        list_entry[1],       #League
+#                        list_entry[2],       #Game Day
+#                        list_entry[3],       #Home
+#                        list_entry[4],       #Away
+#                        list_entry[5],       #Goal home
+#                        list_entry[6],       #Gaol away
+#                        )
+#            self.cursor.execute("INSERT INTO spiele (id, season, league, game_day, home, away, home_goal, away_goal) VALUES (?, ?, ?, ?, ? ,? ,? ,?)", new_entry)
 
-
-columns = ["id", "season", "league", "game_day", "home", "away", "home_goal", "away_goal"]
-values_placeholder = ", ".join(["?" for _ in columns])
-query = f"INSERT INTO spiele ({', '.join(columns)}) VALUES ({values_placeholder})"
-
-new_entry = (
-    self.get_next_id(),  # ID
-    *list_entry
-)
-
-self.cursor.execute(query, new_entry)
-    
 
     def read_data_from_db(self):
         self.cursor.execute("SELECT * FROM spiele")
