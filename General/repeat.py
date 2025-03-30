@@ -3,7 +3,7 @@
 """
 Created on Sun Mar 30 12:19:49 2025
 
-@author: idently.io
+@author: indently.io
 """
 
 from itertools import repeat
