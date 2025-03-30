@@ -3,7 +3,7 @@
 """
 Created on Sun Mar 30 12:03:01 2025
 
-@author: snow
+
 """
 
 from itertools import chain 
