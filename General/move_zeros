@@ -1,0 +1,12 @@
+def verschiebe_nullen(lst):
+    # Alle Nicht-Null-Werte behalten ihre Reihenfolge
+    nicht_nullen = [x for x in lst if x != 0]
+    # Zähle die Anzahl der Nullen
+    anzahl_nullen = lst.count(0)
+    # Füge die Nullen ans Ende an
+    return nicht_nullen + [0] * anzahl_nullen
+
+# Beispiel:
+liste = [0, 3, 0, 5, 0, 1, 2]
+neue_liste = verschiebe_nullen(liste)
+print(neue_liste)
